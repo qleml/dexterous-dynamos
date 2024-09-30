@@ -1,4 +1,4 @@
-# dexterous-dynamous
+# dexterous-dynamos
 Codebase for the RWR 
 
 Please create you own dev branch and push and request a merge regulary. 
