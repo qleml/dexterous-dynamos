@@ -90,6 +90,9 @@ class GripperController:
     def tendon_pos2motor_pos(self, tendon_lengths):
         """ Input: desired tendon lengths
         Output: desired motor positions """
+        # Tendon lengths are more than the motor positions
+        # we skip every other tendon length (depending on motor_map) as moving the one will automatically set the other
+        # so doesn't make sense to calculate the motor position from the tendon length again.
         motor_pos = np.zeros(len(self.motor_ids))
         m_idx = 0
         t_idx = 0
@@ -98,7 +101,7 @@ class GripperController:
             t_nr = len(muscle_group.tendon_ids)
             for m_i in range(m_nr):
                 m_id = muscle_group.motor_ids[m_i]
-                t_i = muscle_group.motor_map.index(m_id)
+                t_i = muscle_group.motor_map.index(m_id) # .index() returns the value of the first occurence in the list
                 motor_pos[m_idx + m_i] = tendon_lengths[t_idx+t_i]/muscle_group.spool_rad[t_i]
             m_idx += m_nr
             t_idx += t_nr
@@ -115,7 +118,7 @@ class GripperController:
             t_nr = len(muscle_group.tendon_ids)
             for m_i in range(m_nr):
                 m_id = muscle_group.motor_ids[m_i]
-                t_i = np.where(np.array(muscle_group.motor_map) == m_id)[0]
+                t_i = np.where(np.array(muscle_group.motor_map) == m_id)[0] # Get both index responding to that motor_id
                 for i in t_i:
                     tendon_lengths[t_idx+i] = motor_pos[m_idx+m_i]*muscle_group.spool_rad[i]
             m_idx += m_nr
@@ -195,26 +198,24 @@ class GripperController:
         Output: motor positions 
         TODO: Extend the calculation of the tendon lengths for every finger. Tip: A clever design can allow for the same formulas for each finger to reduce complexity.
         """
-        tendon_lengths = np.zeros(len(self.tendon_ids))
-        j_idx = 0
-        t_idx = 0
-        for muscle_group in self.muscle_groups:
-            t_nr = len(muscle_group.tendon_ids)
-            j_nr = len(muscle_group.joint_ids)
-            if muscle_group.name == "finger1":
-                tendon_lengths[t_idx:t_idx+t_nr] = fk.pose2tendon_finger1(joint_angles[j_idx],joint_angles[j_idx+1])
-            elif muscle_group.name == "finger2":
-                pass # tendon_lengths[t_idx:t_idx+t_nr] = fk.pose2tendon_finger2(joint_angles[j_idx],joint_angles[j_idx+1])
+        return 
+        # This is com mented out for now as it will create problems with ServoGui and it is not working yet.
+        # tendon_lengths = np.zeros(len(self.tendon_ids))
+        # j_idx = 0
+        # t_idx = 0
+        # for muscle_group in self.muscle_groups:
+        #     t_nr = len(muscle_group.tendon_ids)
+        #     j_nr = len(muscle_group.joint_ids)
+        #     if muscle_group.name == "finger1":
+        #         pass
+        #         # tendon_lengths[t_idx:t_idx+t_nr] = fk.pose2tendon_finger1(joint_angles[j_idx],joint_angles[j_idx+1])
+        #     elif muscle_group.name == "finger2":
+        #         pass # tendon_lengths[t_idx:t_idx+t_nr] = fk.pose2tendon_finger2(joint_angles[j_idx],joint_angles[j_idx+1])
 
-            # TODO: Extend the calculations here for your own fingers:
-
-
-
-
-
-            j_idx += j_nr
-            t_idx += t_nr
-        return self.tendon_pos2motor_pos(tendon_lengths)
+        #     # TODO: Extend the calculations here for your own fingers:
+        #     j_idx += j_nr
+        #     t_idx += t_nr
+        # return self.tendon_pos2motor_pos(tendon_lengths)
 
     def init_joints(self, calibrate: bool = False, maxCurrent: int = 150):
         """
@@ -244,7 +245,7 @@ class GripperController:
 
             # Disable torque to allow the motors to move freely
             self.disable_torque()
-            input("Move fingers to init posiiton and press Enter to continue...")
+            input("Move fingers to init position and press Enter to continue...")
             
             # TODO: Add your own calibration procedure here, that move the motors to a defined initial position:
 
@@ -253,7 +254,7 @@ class GripperController:
 
 
             self.motor_id2init_pos = self.get_motor_pos()
-
+            
             print(f"Motor positions after calibration (0-10): {self.motor_id2init_pos}")
             # Set to current based position control mode
             self.set_operating_mode(5)
