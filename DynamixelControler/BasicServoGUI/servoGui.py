@@ -6,9 +6,6 @@ import numpy as np
 import yaml
 import os
 
-# Import your dynamixel sdk functions for controlling and reading servos.
-# from dynamixel_sdk import *  # Dynamixel SDK imports
-
 DEFAULT_ANGLE = 0
 
 class ServoControlApp:
@@ -33,6 +30,7 @@ class ServoControlApp:
             "Servo 14": {"angle": DEFAULT_ANGLE, "id": 14},
             "Servo 15": {"angle": DEFAULT_ANGLE, "id": 15},
             "Servo 16": {"angle": DEFAULT_ANGLE, "id": 16}}
+        
         self.is_calibrating = False
         self.just_Calibrated = False
 
@@ -46,10 +44,6 @@ class ServoControlApp:
             del self.servos[servo]
 
         self.create_widgets()
-        
-
-        # Start periodic task to update sliders from servo positions.
-        # self.update_servo_positions_periodically()
 
     def create_widgets(self):
         # Servo Buttons
@@ -65,8 +59,8 @@ class ServoControlApp:
         button_frame_right.pack(side="right", padx=20, pady=10)
 
         # Add servo buttons on the left and right frames
-        left_servos = list(self.servos.keys())[:8]  # First 4 servos
-        right_servos = list(self.servos.keys())[8:]  # Last 4 servos
+        left_servos = list(self.servos.keys())[:8]  # First 8 servos
+        right_servos = list(self.servos.keys())[8:]  # Last 8 servos
 
         for servo in left_servos:
             btn = ttk.Button(button_frame_left, text=servo, command=lambda s=servo: self.select_servo(s))
@@ -77,10 +71,10 @@ class ServoControlApp:
             btn.pack(pady=5)
 
         # Angle Slider
-        self.angle_label = tk.Label(self.root, text="Angle: 0")
+        self.angle_label = tk.Label(self.root, text="Angle: {}".format(DEFAULT_ANGLE))
         self.angle_label.pack(pady=10)
 
-        self.angle_slider = tk.Scale(self.root, from_=0, to=360, orient='horizontal', length=300, command=self.update_angle)
+        self.angle_slider = tk.Scale(self.root, from_=0, to=360, orient='horizontal', length=360, command=self.update_angle)
         self.angle_slider.set(DEFAULT_ANGLE)
         self.angle_slider.pack()
 
@@ -127,11 +121,7 @@ class ServoControlApp:
         motor_pos_des  = self.gc.get_motor_pos()
         # Set desired motor position of selected servo
         id = self.servos[servo]["id"]
-        print("Before")
-        print(np.rad2deg(motor_pos_des[id-1]))
         motor_pos_des[id-1] = motor_pos_init[id-1] + np.deg2rad(self.servos[servo]['angle'])
-        print("After")
-        print(np.rad2deg(motor_pos_des[id-1]))
 
         self.gc.write_desired_motor_pos(motor_pos_des)
 
@@ -172,9 +162,11 @@ class ServoControlApp:
             messagebox.showwarning("No Servo Selected", "Please select a servo before calibrating.")
 
     def finish_calibration(self):
+        # Calibration Code is mostly taken from gripper_controller.py
+
         self.gc.motor_id2init_pos = self.gc.get_motor_pos()
 
-        print(f"Motor positions after calibration (0-10): {self.gc.motor_id2init_pos}")
+        print(f"Motor positions after calibration: {self.gc.motor_id2init_pos}")
 
         maxCurrent = 150
         self.gc.motor_id2init_pos = self.gc.get_motor_pos()
@@ -193,11 +185,8 @@ class ServoControlApp:
             yaml.dump(cal_orig, cal_file, default_flow_style=False)
 
         self.status_label.config(text=f"Calibration for {self.selected_servo} complete.")
-
-        # Call a placeholder function to save the calibration
-        self.save_calibration(self.selected_servo)
-
         self.calibrate_button.config(text="Calibrate", command=self.start_calibration)
+        
         self.is_calibrating  = False
         self.just_Calibrated = True
         self.servos[self.selected_servo] = {"angle": DEFAULT_ANGLE, "id": self.servos[self.selected_servo]["id"]}
@@ -207,11 +196,6 @@ class ServoControlApp:
 
         self.angle_label.config(text=f"Angle: {DEFAULT_ANGLE}")
         
-
-    def save_calibration(self, servo):
-        
-        print(f"Calibration for {servo} saved!")
-
 if __name__ == "__main__":
     root = tk.Tk()
     app = ServoControlApp(root)
