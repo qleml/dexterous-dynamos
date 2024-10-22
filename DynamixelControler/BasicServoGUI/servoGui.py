@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import time
+import sys
+sys.path.insert(0, '/home/aristotelis/Desktop/ethCourses1st/realWorldRobotics/dexterous-dynamos/DynamixelControler')
+
 from gripper_controller import GripperController
 import numpy as np
 import yaml
