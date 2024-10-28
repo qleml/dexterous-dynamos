@@ -12,7 +12,7 @@ class MuscleGroup:
     """
     An isolated muscle group comprised of joints and tendons, which do not affect the joints and tendons not included in the group.
     """
-    attributes = ["joint_ids", "tendon_ids", "motor_ids", "motor_map", "spool_rad"]
+    attributes = ["joint_ids", "joint_roms", "tendon_ids", "motor_ids", "motor_map", "spool_rad"]
     def __init__(self, name, muscle_group_json: dict):
         self.name = name
         for attr_name in MuscleGroup.attributes:
@@ -71,13 +71,16 @@ class GripperController:
             self.muscle_groups.append(MuscleGroup(muscle_group_name, muscle_group_data))
         
         # define some useful variables to make it easier to access tendon information
-        attrs_to_get = ["joint_ids", "motor_ids", "tendon_ids", "spool_rad"]
+        attrs_to_get = ["joint_ids", "joint_roms", "motor_ids", "tendon_ids", "spool_rad"]
         for attr in attrs_to_get:
             setattr(self, attr, [])
             for muscle_group in self.muscle_groups:
                 getattr(self, attr).extend(getattr(muscle_group, attr))
         for attr in attrs_to_get:
             setattr(self, attr, np.array(getattr(self, attr)))
+
+        self.get_joints_upper_rom = self.get_joint_upper_rom()
+        self.get_joints_lower_rom = self.get_joint_lower_rom()
 
         self.joint_nr = 0
         # run some sanity checks
@@ -198,24 +201,25 @@ class GripperController:
         Output: motor positions 
         TODO: Extend the calculation of the tendon lengths for every finger. Tip: A clever design can allow for the same formulas for each finger to reduce complexity.
         """
-        return 
-        # This is com mented out for now as it will create problems with ServoGui and it is not working yet.
-        # tendon_lengths = np.zeros(len(self.tendon_ids))
-        # j_idx = 0
-        # t_idx = 0
-        # for muscle_group in self.muscle_groups:
-        #     t_nr = len(muscle_group.tendon_ids)
-        #     j_nr = len(muscle_group.joint_ids)
-        #     if muscle_group.name == "finger1":
-        #         pass
-        #         # tendon_lengths[t_idx:t_idx+t_nr] = fk.pose2tendon_finger1(joint_angles[j_idx],joint_angles[j_idx+1])
-        #     elif muscle_group.name == "finger2":
-        #         pass # tendon_lengths[t_idx:t_idx+t_nr] = fk.pose2tendon_finger2(joint_angles[j_idx],joint_angles[j_idx+1])
+        # return 
+        # This is commented out for now as it will create problems with ServoGui and it is not working yet.
+        tendon_lengths = np.zeros(len(self.tendon_ids))
+        j_idx = 0
+        t_idx = 0
+        for muscle_group in self.muscle_groups:
+            t_nr = len(muscle_group.tendon_ids)
+            j_nr = len(muscle_group.joint_ids)
+            if muscle_group.name == "finger1":
+                tendon_lengths[t_idx:t_idx+t_nr] = fk.pose2tendon_finger(joint_angles[j_idx],joint_angles[j_idx+1],joint_angles[j_idx+2])
+            elif muscle_group.name == "finger2":
+                tendon_lengths[t_idx:t_idx+t_nr] = fk.pose2tendon_finger(joint_angles[j_idx],joint_angles[j_idx+1],joint_angles[j_idx+2])
+            elif muscle_group.name == "finger3":
+                tendon_lengths[t_idx:t_idx+t_nr] = fk.pose2tendon_finger(joint_angles[j_idx],joint_angles[j_idx+1],joint_angles[j_idx+2])
 
-        #     # TODO: Extend the calculations here for your own fingers:
-        #     j_idx += j_nr
-        #     t_idx += t_nr
-        # return self.tendon_pos2motor_pos(tendon_lengths)
+            # TODO: Extend the calculations here for your own fingers:
+            j_idx += j_nr
+            t_idx += t_nr
+        return self.tendon_pos2motor_pos(tendon_lengths)
 
     def init_joints(self, calibrate: bool = False, maxCurrent: int = 150):
         """
@@ -248,11 +252,6 @@ class GripperController:
             input("Move fingers to init position and press Enter to continue...")
             
             # TODO: Add your own calibration procedure here, that move the motors to a defined initial position:
-
-
-
-
-
             self.motor_id2init_pos = self.get_motor_pos()
             
             print(f"Motor positions after calibration (0-10): {self.motor_id2init_pos}")
@@ -280,6 +279,53 @@ class GripperController:
         motor_pos_des = self.pose2motors(np.deg2rad(joint_angles)) - self.motor_pos_norm + self.motor_id2init_pos
         self.write_desired_motor_pos(motor_pos_des)
         time.sleep(0.01) # wait for the command to be sent
+
+
+    def get_joint_upper_rom(self):
+        """
+        Get the upper ROM value for each joint.
+        The ROM is taken directly from the joint ROM defined in each muscle group.
+        """
+        joint_upper_roms = np.zeros(len(self.joint_ids))  # Initialize array for upper ROMs
+        j_idx = 0
+        for muscle_group in self.muscle_groups:
+            for joint_id in range(len(muscle_group.joint_ids)):
+                joint_upper_roms[j_idx] = muscle_group.joint_roms[joint_id][1]  # Get upper ROM from joint ROM
+                j_idx += 1
+        return joint_upper_roms
+
+    def get_joint_lower_rom(self):
+        """j_idx
+        Get the lower ROM value for each joint.
+        The ROM is taken directly from the joint ROM defined in each muscle group.
+        """
+        joint_lower_roms = np.zeros(len(self.joint_ids))  # Initialize array for lower ROMs
+        j_idx = 0
+        for muscle_group in self.muscle_groups:
+            for joint_id in range(len(muscle_group.joint_ids)):
+                joint_lower_roms[j_idx] = muscle_group.joint_roms[joint_id][0]  # Get lower ROM from joint ROM
+                j_idx += 1
+        return joint_lower_roms
+
+    def get_specific_joint_rom(self, joint_id):
+        """
+        Get the lower and upper ROM for a specific joint based on the joint_id.
+        :param joint_id: The ID of the joint to get ROM for.
+        :return: Tuple (lower ROM, upper ROM)
+        """
+        for muscle_group in self.muscle_groups:
+            if joint_id in muscle_group.joint_ids:
+                j_idx = muscle_group.joint_ids.index(joint_id)
+                lower_rom = muscle_group.joint_roms[j_idx][0]
+                upper_rom = muscle_group.joint_roms[j_idx][1]
+                return lower_rom, upper_rom, upper_rom - lower_rom
+        raise ValueError(f"Joint ID {joint_id} not found.")
+
+    def get_motors_rom(self):
+        # Based on the ROMs defined in the muscle groups for the joints and the spool rom
+        # Calculate the ROMs of each motor and save it in self.motors_rom. 
+        # Comparing with initial values/Calibration check for the motors if they are requested to go outside their allower rom values.
+        return
 
 if __name__ == "__main__" :
     gc = GripperController("/dev/ttyUSB0")
