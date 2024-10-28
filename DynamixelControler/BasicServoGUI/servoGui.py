@@ -15,36 +15,44 @@ class ServoControlApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Servo Control App")
-        self.selected_servo = "Servo 1"
-        self.servos = {
-            "Servo 1": {"angle": DEFAULT_ANGLE, "id": 1},
-            "Servo 2": {"angle": DEFAULT_ANGLE, "id": 2},
-            "Servo 3": {"angle": DEFAULT_ANGLE, "id": 3},
-            "Servo 4": {"angle": DEFAULT_ANGLE, "id": 4},
-            "Servo 5": {"angle": DEFAULT_ANGLE, "id": 5},
-            "Servo 6": {"angle": DEFAULT_ANGLE, "id": 6},
-            "Servo 7": {"angle": DEFAULT_ANGLE, "id": 7},
-            "Servo 8": {"angle": DEFAULT_ANGLE, "id": 8},
-            "Servo 9": {"angle": DEFAULT_ANGLE, "id": 9},
-            "Servo 10": {"angle": DEFAULT_ANGLE, "id": 10},
-            "Servo 11": {"angle": DEFAULT_ANGLE, "id": 11},
-            "Servo 12": {"angle": DEFAULT_ANGLE, "id": 12},
-            "Servo 13": {"angle": DEFAULT_ANGLE, "id": 13},
-            "Servo 14": {"angle": DEFAULT_ANGLE, "id": 14},
-            "Servo 15": {"angle": DEFAULT_ANGLE, "id": 15},
-            "Servo 16": {"angle": DEFAULT_ANGLE, "id": 16}}
+        # self.selected_servo = "Servo 1"
+        # self.servos = {
+        #     "Servo 1": {"angle": DEFAULT_ANGLE, "id": 1},
+        #     "Servo 2": {"angle": DEFAULT_ANGLE, "id": 2},
+        #     "Servo 3": {"angle": DEFAULT_ANGLE, "id": 3},
+        #     "Servo 4": {"angle": DEFAULT_ANGLE, "id": 4},
+        #     "Servo 5": {"angle": DEFAULT_ANGLE, "id": 5},
+        #     "Servo 6": {"angle": DEFAULT_ANGLE, "id": 6},
+        #     "Servo 7": {"angle": DEFAULT_ANGLE, "id": 7},
+        #     "Servo 8": {"angle": DEFAULT_ANGLE, "id": 8},
+        #     "Servo 9": {"angle": DEFAULT_ANGLE, "id": 9},
+        #     "Servo 10": {"angle": DEFAULT_ANGLE, "id": 10},
+        #     "Servo 11": {"angle": DEFAULT_ANGLE, "id": 11},
+        #     "Servo 12": {"angle": DEFAULT_ANGLE, "id": 12},
+        #     "Servo 13": {"angle": DEFAULT_ANGLE, "id": 13},
+        #     "Servo 14": {"angle": DEFAULT_ANGLE, "id": 14},
+        #     "Servo 15": {"angle": DEFAULT_ANGLE, "id": 15},
+        #     "Servo 16": {"angle": DEFAULT_ANGLE, "id": 16}}
         
         self.is_calibrating = False
         self.just_Calibrated = False
 
-        self.gc = GripperController(port="/dev/ttyUSB0",calibration=False)
-        servos_to_delete = []
-        for servo in self.servos: 
-            if self.servos[servo]['id'] not in self.gc.motor_ids:
-                servos_to_delete.append(servo)
+        self.gc = GripperController(port="/dev/ttyUSB0",calibration=True)
+        self.servos = {}
+        first_Servo_flag = True
+        for i, servo in enumerate(self.gc.motor_ids):
+            if first_Servo_flag:
+                self.selected_servo = "Servo {}".format(servo)
+                first_Servo_flag = False
+            self.servos.update({"Servo {:02}".format(servo): {"angle": DEFAULT_ANGLE, "id": i}}) 
 
-        for servo in servos_to_delete:
-            del self.servos[servo]
+        # servos_to_delete = []
+        # for servo in self.servos: 
+        #     if self.servos[servo]['id'] not in self.gc.motor_ids:
+        #         servos_to_delete.append(servo)
+
+        # for servo in servos_to_delete:
+        #     del self.servos[servo]
 
         self.create_widgets()
 
@@ -58,9 +66,11 @@ class ServoControlApp:
         button_frame_left = tk.Frame(self.root)
         button_frame_right = tk.Frame(self.root)
 
+
         button_frame_left.pack(side="left", padx=20, pady=10)
         button_frame_right.pack(side="right", padx=20, pady=10)
 
+        self.servos = dict(sorted(self.servos.items()))
         # Add servo buttons on the left and right frames
         left_servos = list(self.servos.keys())[:8]  # First 8 servos
         right_servos = list(self.servos.keys())[8:]  # Last 8 servos
@@ -124,7 +134,7 @@ class ServoControlApp:
         motor_pos_des  = self.gc.get_motor_pos()
         # Set desired motor position of selected servo
         id = self.servos[servo]["id"]
-        motor_pos_des[id-1] = motor_pos_init[id-1] + np.deg2rad(self.servos[servo]['angle'])
+        motor_pos_des[id] = motor_pos_init[id] - np.deg2rad(self.servos[servo]['angle'])
 
         self.gc.write_desired_motor_pos(motor_pos_des)
 
@@ -177,13 +187,15 @@ class ServoControlApp:
         self.gc.write_desired_motor_current(maxCurrent * np.ones(len(self.gc.motor_ids)))
         time.sleep(0.2)
 
-        cal_yaml_fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cal.yaml")
+        # cal_yaml_fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cal.yaml")
+        current_dir = os.path.abspath(__file__)
+        previous_directory = os.path.dirname(os.path.dirname(current_dir))
+        cal_yaml_fname = os.path.join(previous_directory, "cal.yaml")
         # Save the offsets to a YAML file
         with open(cal_yaml_fname, 'r') as cal_file:
             cal_orig = yaml.load(cal_file, Loader=yaml.FullLoader)
 
         cal_orig['motor_init_pos'] = self.gc.motor_id2init_pos.tolist()
-
         with open(cal_yaml_fname, 'w') as cal_file:
             yaml.dump(cal_orig, cal_file, default_flow_style=False)
 
