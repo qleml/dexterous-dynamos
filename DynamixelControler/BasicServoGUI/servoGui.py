@@ -10,30 +10,10 @@ import yaml
 import os
 
 DEFAULT_ANGLE = 0
-
 class ServoControlApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Servo Control App")
-        # self.selected_servo = "Servo 1"
-        # self.servos = {
-        #     "Servo 1": {"angle": DEFAULT_ANGLE, "id": 1},
-        #     "Servo 2": {"angle": DEFAULT_ANGLE, "id": 2},
-        #     "Servo 3": {"angle": DEFAULT_ANGLE, "id": 3},
-        #     "Servo 4": {"angle": DEFAULT_ANGLE, "id": 4},
-        #     "Servo 5": {"angle": DEFAULT_ANGLE, "id": 5},
-        #     "Servo 6": {"angle": DEFAULT_ANGLE, "id": 6},
-        #     "Servo 7": {"angle": DEFAULT_ANGLE, "id": 7},
-        #     "Servo 8": {"angle": DEFAULT_ANGLE, "id": 8},
-        #     "Servo 9": {"angle": DEFAULT_ANGLE, "id": 9},
-        #     "Servo 10": {"angle": DEFAULT_ANGLE, "id": 10},
-        #     "Servo 11": {"angle": DEFAULT_ANGLE, "id": 11},
-        #     "Servo 12": {"angle": DEFAULT_ANGLE, "id": 12},
-        #     "Servo 13": {"angle": DEFAULT_ANGLE, "id": 13},
-        #     "Servo 14": {"angle": DEFAULT_ANGLE, "id": 14},
-        #     "Servo 15": {"angle": DEFAULT_ANGLE, "id": 15},
-        #     "Servo 16": {"angle": DEFAULT_ANGLE, "id": 16}}
-        
+        self.root.title("Servo Control App") 
         self.is_calibrating = False
         self.just_Calibrated = False
 
@@ -45,14 +25,6 @@ class ServoControlApp:
                 self.selected_servo = "Servo {}".format(servo)
                 first_Servo_flag = False
             self.servos.update({"Servo {:02}".format(servo): {"angle": DEFAULT_ANGLE, "id": i}}) 
-
-        # servos_to_delete = []
-        # for servo in self.servos: 
-        #     if self.servos[servo]['id'] not in self.gc.motor_ids:
-        #         servos_to_delete.append(servo)
-
-        # for servo in servos_to_delete:
-        #     del self.servos[servo]
 
         self.create_widgets()
 

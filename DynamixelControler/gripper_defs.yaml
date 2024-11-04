@@ -1,45 +1,44 @@
 muscle_groups:
-  finger1:
-    joint_ids: [16, 5, 9]           # [PIP, MCP, ABD]  ids for each controllable joint from proximal to distal 
+  pinky:
+    joint_ids: [16, 4, 7]           # [PIP, MCP, ABD]  ids for each controllable joint from proximal to distal 
     joint_roms: [[0, 100], [-20, 100], [-20, 20]] # [PIP, MCP, ABD] 
     tendon_ids: [0, 1, 2, 3, 4, 5]    # ids for each tendon according to joints, first flexor then extensor, from proximal to distal
-    motor_ids: [16, 5, 9]           # ids of motors for this muscle group
-    motor_map: [16, 16, 5, 5, 9, 9]     # maps each tendon to a certain motor. antagonistic tendons have same motor id in motor_map
+    motor_ids: [16, 4, 7]           # ids of motors for this muscle group
+    motor_map: [16, 16, 4, 4, 7, 7]     # maps each tendon to a certain motor. antagonistic tendons have same motor id in motor_map
     spool_rad: [4.25, -4.25, 4.25, -4.25, 4.25, -4.25] # [+ = counterclockwise motion, - clockwise motion]  
                # + = if tendon attaches on the left side it will shorten with a positive angle
 
-  finger2:
-    joint_ids: [11, 3, 10]           # [PIP, MCP, ABD]  ids for each controllable joint from proximal to distal 
+  middle:
+    joint_ids: [14, 5, 9]          
+    joint_roms: [[0, 100], [-20, 100], [-45, 45]]
+    tendon_ids: [6, 7, 8, 9, 10, 11]    
+    motor_ids: [14, 5, 9]          
+    motor_map: [14, 14, 5, 5, 9, 9]     
+    spool_rad: [ 4.25, -4.25, 4.25, -4.25, 4.25, -4.25] 
+
+  index:
+    joint_ids: [11, 6, 8]           # [PIP, MCP, ABD]  ids for each controllable joint from proximal to distal 
     joint_roms: [[0, 100], [-20, 100], [-20, 20]] # [PIP, MCP, ABD] 
     tendon_ids: [0, 1, 2, 3, 4, 5]    # ids for each tendon according to joints, first flexor then extensor, from proximal to distal
-    motor_ids: [11, 3, 10]           # ids of motors for this muscle group
-    motor_map: [11, 11, 3, 3, 10, 10]     # maps each tendon to a certain motor. antagonistic tendons have same motor id in motor_map
+    motor_ids: [11, 6, 8]           # ids of motors for this muscle group
+    motor_map: [11, 11, 6, 6, 8, 8]     # maps each tendon to a certain motor. antagonistic tendons have same motor id in motor_map
     spool_rad: [4.25, -4.25, 4.25, -4.25, 4.25, -4.25] # [+ = counterclockwise motion, - clockwise motion]  
                # + = if tendon attaches on the left side it will shorten with a positive angle
 
-  finger3:
-    joint_ids: [14, 4, 7]           
+  ring: # These are randomly allocated do not change
+    joint_ids: [1, 2, 3]            
     joint_roms: [[0, 100], [-20, 100], [-45, 45]]
     tendon_ids: [6, 7, 8, 9, 10, 11]    
-    motor_ids: [14, 4, 7]          
-    motor_map: [14, 14, 4, 4, 7, 7]     
+    motor_ids: [1, 2, 3]          
+    motor_map: [1, 1, 2, 2, 3, 3]     
     spool_rad: [ 4.25, -4.25, 4.25, -4.25, 4.25, -4.25] 
 
-
-  finger4: # These are randomly allocated do not change
-    joint_ids: [1, 2, 6]            
+  thumb: # These are randomly allocated do not change
+    joint_ids: [12, 13, 10]           
     joint_roms: [[0, 100], [-20, 100], [-45, 45]]
     tendon_ids: [6, 7, 8, 9, 10, 11]    
-    motor_ids: [1, 2, 6]          
-    motor_map: [1, 1, 2, 2, 6, 6]     
-    spool_rad: [ 4.25, -4.25, 4.25, -4.25, 4.25, -4.25] 
-
-  finger5: # These are randomly allocated do not change
-    joint_ids: [12, 13, 8]           
-    joint_roms: [[0, 100], [-20, 100], [-45, 45]]
-    tendon_ids: [6, 7, 8, 9, 10, 11]    
-    motor_ids: [12, 13, 8]          
-    motor_map: [12, 12, 13, 13, 8, 8]     
+    motor_ids: [12, 13, 10]          
+    motor_map: [12, 12, 13, 13, 10, 10]     
     spool_rad: [ 4.25, -4.25, 4.25, -4.25, 4.25, -4.25] 
 
   wrist:
@@ -49,34 +48,3 @@ muscle_groups:
     motor_ids: [15]          
     motor_map: [15, 15]     
     spool_rad: [ 4.25, -4.25] 
-
-# # Test
-#   finger1:
-#     joint_ids: [0, 1, 2]           # ids for each controllable joint from proximal to distal
-#     tendon_ids: [0, 1, 2, 3, 4, 5]    # ids for each tendon according to joints, first flexor then extensor, from proximal to distal
-#     motor_ids: [1, 2, 3]           # ids of motors for this muscle group
-#     motor_map: [1, 1, 2, 2, 3, 3]     # maps each tendon to a certain motor. antagonistic tendons have same motor id in motor_map
-#     spool_rad: [-5, 5,-5, 5,-5, 5]   # defines spool radius and wind direction for each tendon. 
-#                                 # wind direction is positive, if tendon attaches on the right side of the spool (from the front of the motor)
- 
-
-
-# muscle_groups:
-#   finger1:
-#     joint_ids: [0, 1, 2]           # ids for each controllable joint from proximal to distal
-#     tendon_ids: [0, 1, 2, 3]    # ids for each tendon according to joints, first flexor then extensor, from proximal to distal
-#     motor_ids: [1, 2]           # ids of motors for this muscle group
-#     motor_map: [1, 1, 2, 2]     # maps each tendon to a certain motor. antagonistic tendons have same motor id in motor_map
-#     spool_rad: [-5, 5, -5, 5]   # defines spool radius and wind direction for each tendon. 
-#                                 # wind direction is positive, if tendon attaches on the right side of the spool (from the front of the motor)
-
-
-
-  # finger1:
-  #   joint_ids: [0, 1, 2]           # [PIP, MCP, ABD]  ids for each controllable joint from proximal to distal 
-  #   joint_roms: [[0, 100], [-20, 100], [-20, 20]] # [PIP, MCP, ABD] 
-  #   tendon_ids: [0, 1, 2, 3, 4, 5]    # ids for each tendon according to joints, first flexor then extensor, from proximal to distal
-  #   motor_ids: [1, 2, 3]           # ids of motors for this muscle group
-  #   motor_map: [1, 1, 2, 2, 3, 3]     # maps each tendon to a certain motor. antagonistic tendons have same motor id in motor_map
-  #   spool_rad: [4.25, -4.25, 4.25, -4.25, 4.25, -4.25] # [+ = counterclockwise motion, - clockwise motion]  
-  #              # + = if tendon attaches on the left side it will shorten with a positive angle
